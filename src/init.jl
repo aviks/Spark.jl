@@ -2,10 +2,18 @@ function init()
     envcp = get(ENV, "CLASSPATH", "")
     hadoopConfDir = get(ENV, "HADOOP_CONF_DIR", "")
     yarnConfDir = get(ENV, "YARN_CONF_DIR", "")
-    emrfslib = "/usr/share/aws/emr/emrfs/lib/aopalliance-1.0.jar:/usr/share/aws/emr/emrfs/lib/bcpkix-jdk15on-1.51.jar:/usr/share/aws/emr/emrfs/lib/bcprov-jdk15on-1.51.jar:/usr/share/aws/emr/emrfs/lib/emrfs-hadoop-assembly-2.15.0.jar:/usr/share/aws/emr/emrfs/lib/javax.inject-1.jar:/usr/share/aws/emr/emrfs/lib/jcl-over-slf4j-1.7.21.jar:/usr/share/aws/emr/emrfs/lib/slf4j-api-1.7.21.jar:/usr/share/aws/emr/hadoop-state-pusher/lib/hadoop-common-2.7.2-amzn-1.jar"
-    sparkjlassembly = joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar")
+    defaults = load_spark_defaults()
+    extracp = defaults["spark.driver.extraClassPath"]
+    shome =  get(ENV, "SPARK_HOME", "")
+    libassembly = joinpath(get(ENV, "SPARK_HOME", ""), "lib", "spark-assembly.jar")
+    if isfile(libassembly)
+        sparkjlassembly = libassembly
+    else
+        sparkjlassembly = joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar")
+    end
     classpath = @static is_windows() ? "$envcp;$sparkjlassembly" : "$envcp:$sparkjlassembly"
-    classpath = "$classpath:$hadoopConfDir:$yarnConfDir:$emrfslib"
+    classpath = @static is_windows() ? "$classpath;$hadoopConfDir;$yarnConfDir;extracp" : "$classpath:$hadoopConfDir:$yarnConfDir:$extracp"
+
     try
         println("JVM starting from init.jl")
         # prevent exceptions in REPL on code reloading
@@ -16,6 +24,25 @@ function init()
         #JVM default start
         JavaCall.init(["-ea", "-Xmx1024M", "-cp $classpath", "-Djava.class.path=$classpath"])
     end
+end
+
+function load_spark_defaults()
+    d=Dict()
+    sconf = get(ENV, "SPARK_CONF", "")
+    if sconf == ""
+        shome =  get(ENV, "SPARK_HOME", "")
+        if shome == "" ; return jconf; end
+        sconf = joinpath(shome, "conf")
+    end
+    p = map(split, filter(isnotcomment, split(readstring(joinpath(sconf, "spark-defaults.conf")), '\n', keep=false) ) )
+    for x in p
+        d[x[1]] = x[2]
+    end
+    return d
+end
+
+function isnotcomment(x)
+    return !startswith(x, "#")
 end
 
 init()
