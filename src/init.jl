@@ -34,15 +34,15 @@ function load_spark_defaults()
         if shome == "" ; return jconf; end
         sconf = joinpath(shome, "conf")
     end
-    p = map(split, filter(isnotcomment, split(readstring(joinpath(sconf, "spark-defaults.conf")), '\n', keep=false) ) )
+    p = split(readstring(joinpath(sconf, "spark-defaults.conf")), '\n', keep=false)
     for x in p
-        d[x[1]] = x[2]
+         if !startswith(x, "#") && !isempty(strip(x))
+             y=split(x, " ", limit=2); println(y)
+             d[y[1]]=y[2]
+         end
     end
     return d
 end
 
-function isnotcomment(x)
-    return !startswith(x, "#")
-end
 
 init()
