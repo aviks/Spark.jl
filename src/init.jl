@@ -3,7 +3,7 @@ function init()
     hadoopConfDir = get(ENV, "HADOOP_CONF_DIR", "")
     yarnConfDir = get(ENV, "YARN_CONF_DIR", "")
     defaults = load_spark_defaults()
-    extracp = defaults["spark.driver.extraClassPath"]
+    extracp = get(defaults, "spark.driver.extraClassPath", "")
     shome =  get(ENV, "SPARK_HOME", "")
     libassembly = joinpath(get(ENV, "SPARK_HOME", ""), "lib", "spark-assembly.jar")
     if isfile(libassembly)
