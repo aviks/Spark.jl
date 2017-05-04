@@ -1,8 +1,10 @@
+global const SPARK_DEFAULT_PROPS = Dict()
+
 function init()
     envcp = get(ENV, "CLASSPATH", "")
     hadoopConfDir = get(ENV, "HADOOP_CONF_DIR", "")
     yarnConfDir = get(ENV, "YARN_CONF_DIR", "")
-    defaults = load_spark_defaults()
+    defaults = load_spark_defaults(SPARK_DEFAULT_PROPS)
     extracp = get(defaults, "spark.driver.extraClassPath", "")
     shome =  get(ENV, "SPARK_HOME", "")
     libassembly = joinpath(get(ENV, "SPARK_HOME", ""), "lib", "spark-assembly.jar")
@@ -26,8 +28,7 @@ function init()
     end
 end
 
-function load_spark_defaults()
-    d=Dict()
+function load_spark_defaults(d::Dict)
     sconf = get(ENV, "SPARK_CONF", "")
     if sconf == ""
         shome =  get(ENV, "SPARK_HOME", "")

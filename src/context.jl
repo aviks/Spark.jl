@@ -17,7 +17,7 @@ Params:
 function SparkContext(;master::AbstractString="local",
                       deploymode::AbstractString="client",
                       appname::AbstractString="Julia App on Spark")
-    conf = SparkConf()
+    conf = SparkConf(SPARK_DEFAULT_PROPS)
     setmaster(conf, master)
     setappname(conf, appname)
     setdeploy(conf, deploymode)
