@@ -1,21 +1,23 @@
 global const SPARK_DEFAULT_PROPS = Dict()
 
 function init()
-    envcp = get(ENV, "CLASSPATH", "")
-    hadoopConfDir = get(ENV, "HADOOP_CONF_DIR", "")
-    yarnConfDir = get(ENV, "YARN_CONF_DIR", "")
+    JavaCall.addClassPath(get(ENV, "CLASSPATH", ""))
     defaults = load_spark_defaults(SPARK_DEFAULT_PROPS)
-    extracp = get(defaults, "spark.driver.extraClassPath", "")
     shome =  get(ENV, "SPARK_HOME", "")
-    libassembly = joinpath(get(ENV, "SPARK_HOME", ""), "lib", "spark-assembly.jar")
-    if isfile(libassembly)
-        sparkjlassembly = libassembly
+    if !isempty(shome)
+        for x in readdir(joinpath(shome, "jars"))
+            JavaCall.addClassPath(joinpath(shome, "jars", x))
+        end
+        JavaCall.addClassPath(joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1.jar"))
     else
-        sparkjlassembly = joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar")
+        JavaCall.addClassPath(joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar"))
     end
-    classpath = @static is_windows() ? "$envcp;$sparkjlassembly" : "$envcp:$sparkjlassembly"
-    classpath = @static is_windows() ? "$classpath;$hadoopConfDir;$yarnConfDir;extracp" : "$classpath:$hadoopConfDir:$yarnConfDir:$extracp"
+    JavaCall.addClassPath(get(defaults, "spark.driver.extraClassPath", ""))
+    JavaCall.addClassPath(get(ENV, "HADOOP_CONF_DIR", ""))
+    JavaCall.addClassPath(get(ENV, "YARN_CONF_DIR", ""))
 
+    JavaCall.addOpts("-ea")
+    JavaCall.addOpts("-Xmx1024M")
     try
         println("JVM starting from init.jl")
         # prevent exceptions in REPL on code reloading
@@ -24,7 +26,7 @@ function init()
         #JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=$classpath", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=4000"])
 
         #JVM default start
-        JavaCall.init(["-ea", "-Xmx1024M", "-cp $classpath", "-Djava.class.path=$classpath"])
+        JavaCall.init()
     end
 end
 
