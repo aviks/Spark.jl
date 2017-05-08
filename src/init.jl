@@ -18,7 +18,7 @@ function init()
         end
     end
 
-    for y in split(get(defaults, "spark.driver.extraClassPath", ""), " ", keep=false)
+    for y in split(get(defaults, "spark.driver.extraClassPath", ""), [':',';'], keep=false)
         JavaCall.addClassPath(String(y))
     end
     JavaCall.addClassPath(get(defaults, "spark.driver.extraClassPath", ""))
