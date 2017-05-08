@@ -12,8 +12,10 @@ function init()
     else
         JavaCall.addClassPath(joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar"))
     end
-    for x in readdir("/usr/lib/hdinsight-datalake/")
-        JavaCall.addClassPath(joinpath("/usr/lib/hdinsight-datalake/", x))
+    if isdir("/usr/lib/hdinsight-datalake/")
+        for x in readdir("/usr/lib/hdinsight-datalake/")
+            JavaCall.addClassPath(joinpath("/usr/lib/hdinsight-datalake/", x))
+        end
     end
 
     for y in split(get(defaults, "spark.driver.extraClassPath", ""), " ", keep=false)
@@ -53,7 +55,7 @@ function load_spark_defaults(d::Dict)
     p = split(readstring(joinpath(sconf, "spark-defaults.conf")), '\n', keep=false)
     for x in p
          if !startswith(x, "#") && !isempty(strip(x))
-             y=split(x, " ", limit=2); println(y)
+             y=split(x, " ", limit=2)
              d[y[1]]=y[2]
          end
     end
