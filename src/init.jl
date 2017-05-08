@@ -21,7 +21,6 @@ function init()
     for y in split(get(defaults, "spark.driver.extraClassPath", ""), [':',';'], keep=false)
         JavaCall.addClassPath(String(y))
     end
-    JavaCall.addClassPath(get(defaults, "spark.driver.extraClassPath", ""))
     JavaCall.addClassPath(get(ENV, "HADOOP_CONF_DIR", ""))
     JavaCall.addClassPath(get(ENV, "YARN_CONF_DIR", ""))
     if get(ENV, "HDP_VERSION", "") == ""
