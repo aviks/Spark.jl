@@ -12,10 +12,23 @@ function init()
     else
         JavaCall.addClassPath(joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar"))
     end
+    for x in readdir("/usr/lib/hdinsight-datalake/")
+        JavaCall.addClassPath(joinpath("/usr/lib/hdinsight-datalake/", x))
+    end
+
+    for y in split(get(defaults, "spark.driver.extraClassPath", ""), " ", keep=false)
+        JavaCall.addClassPath(y)
+    end
     JavaCall.addClassPath(get(defaults, "spark.driver.extraClassPath", ""))
     JavaCall.addClassPath(get(ENV, "HADOOP_CONF_DIR", ""))
     JavaCall.addClassPath(get(ENV, "YARN_CONF_DIR", ""))
+    if get(ENV, "HDP_VERSION", "") == ""
+       ENV["HDP_VERSION"] = pipeline(`hdp-select status` , `grep spark2-client` , `awk -F " " '{print $3}'`) |> readstring |> strip
+    end
 
+    for y in split(get(defaults, "spark.driver.extraJavaOptions", ""), " ", keep=false)
+        JavaCall.addOpts(y)
+    end
     JavaCall.addOpts("-ea")
     JavaCall.addOpts("-Xmx1024M")
     try
@@ -46,6 +59,5 @@ function load_spark_defaults(d::Dict)
     end
     return d
 end
-
 
 init()
