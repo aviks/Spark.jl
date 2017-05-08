@@ -24,7 +24,10 @@ function init()
     JavaCall.addClassPath(get(ENV, "HADOOP_CONF_DIR", ""))
     JavaCall.addClassPath(get(ENV, "YARN_CONF_DIR", ""))
     if get(ENV, "HDP_VERSION", "") == ""
-       ENV["HDP_VERSION"] = pipeline(`hdp-select status` , `grep spark2-client` , `awk -F " " '{print $3}'`) |> readstring |> strip
+       try
+           ENV["HDP_VERSION"] = pipeline(`hdp-select status` , `grep spark2-client` , `awk -F " " '{print $3}'`) |> readstring |> strip
+       catch
+       end
     end
 
     for y in split(get(defaults, "spark.driver.extraJavaOptions", ""), " ", keep=false)
@@ -48,7 +51,7 @@ function load_spark_defaults(d::Dict)
     sconf = get(ENV, "SPARK_CONF", "")
     if sconf == ""
         shome =  get(ENV, "SPARK_HOME", "")
-        if shome == "" ; return jconf; end
+        if shome == "" ; return d; end
         sconf = joinpath(shome, "conf")
     end
     p = split(readstring(joinpath(sconf, "spark-defaults.conf")), '\n', keep=false)
