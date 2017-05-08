@@ -27,7 +27,7 @@ function init()
     end
 
     for y in split(get(defaults, "spark.driver.extraJavaOptions", ""), " ", keep=false)
-        JavaCall.addOpts(y)
+        JavaCall.addOpts(String(y))
     end
     JavaCall.addOpts("-ea")
     JavaCall.addOpts("-Xmx1024M")
