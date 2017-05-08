@@ -58,7 +58,7 @@ function load_spark_defaults(d::Dict)
     for x in p
          if !startswith(x, "#") && !isempty(strip(x))
              y=split(x, " ", limit=2)
-             d[y[1]]=y[2]
+             d[y[1]]=strip(y[2])
          end
     end
     return d
