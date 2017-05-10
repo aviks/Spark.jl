@@ -12,14 +12,11 @@ function init()
     else
         JavaCall.addClassPath(joinpath(dirname(@__FILE__), "..", "jvm", "sparkjl", "target", "sparkjl-0.1-assembly.jar"))
     end
-    if isdir("/usr/lib/hdinsight-datalake/")
-        for x in readdir("/usr/lib/hdinsight-datalake/")
-            JavaCall.addClassPath(joinpath("/usr/lib/hdinsight-datalake/", x))
-        end
-    end
-
-    for y in split(get(defaults, "spark.driver.extraClassPath", ""), [':',';'], keep=false)
+    for y in split(get(ENV, "SPARK_DIST_CLASSPATH", ""), [':',';'], keep=false)
         JavaCall.addClassPath(String(y))
+    end
+    for z in split(get(defaults, "spark.driver.extraClassPath", ""), [':',';'], keep=false)
+        JavaCall.addClassPath(String(z))
     end
     JavaCall.addClassPath(get(ENV, "HADOOP_CONF_DIR", ""))
     JavaCall.addClassPath(get(ENV, "YARN_CONF_DIR", ""))
@@ -33,6 +30,10 @@ function init()
     for y in split(get(defaults, "spark.driver.extraJavaOptions", ""), " ", keep=false)
         JavaCall.addOpts(String(y))
     end
+    s = get(defaults, "spark.driver.extraLibraryPath", "")
+    try
+        JavaCall.addOpts("-Djava.library.path=$(defaults["spark.driver.extraLibraryPath"])")
+    catch; end
     JavaCall.addOpts("-ea")
     JavaCall.addOpts("-Xmx1024M")
     try
